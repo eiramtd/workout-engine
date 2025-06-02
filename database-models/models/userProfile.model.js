@@ -1,5 +1,48 @@
 const {mongoose , Schema} = require('mongoose');
 
+const userActivitySchema = new Schema({
+  weight: {
+    type: Number,
+  },
+  height: {
+    type: Number,
+  },
+  age: {
+    type: Number,
+  },
+  trainingExperience: {
+    type: String,
+    enum: ['Beginner', 'Intermediate', 'Advanced'], // add more later 
+  }, 
+  goal: {
+    type: String,
+    enum: ['Weight Loss', 'Muscle Gain', 'Maintenance'], // add more later 
+  },
+  activityLevel: {
+    type: String,
+    enum: ['Sedentary', 'Lightly Active', 'Moderately Active', 'Very Active', 'Super Active'], // add more later 
+  }, 
+}); 
+
+
+const userSocialSchema = new Schema({
+  Instagram: {
+    type: String,
+    trim: true
+  },
+  friends: {
+    type: [Schema.Types.ObjectId],
+    ref: 'User'
+  },
+  followers: {
+    type: [Schema.Types.ObjectId],
+    ref: 'User'
+  }, 
+  following: {
+    type: [Schema.Types.ObjectId],
+    ref: 'User'
+  },
+});
 
 const userProfileSchema = new Schema({
   userId: {
@@ -26,6 +69,10 @@ const userProfileSchema = new Schema({
   phoneNumber: {
     type: String,
     trim: true
+  }, 
+  password_hash: {
+    type: String,
+    required: true
   }, 
   gender: {
     type: String,
@@ -58,48 +105,4 @@ const userProfileSchema = new Schema({
 
 });
 
-const userActivitySchema = new Schema({
-  weight: {
-    type: Number,
-  },
-  height: {
-    type: Number,
-  },
-  age: {
-    type: Number,
-  },
-  trainingExperience: {
-    type: String,
-    enum: ['Beginner', 'Intermediate', 'Advanced'], // add more later 
-    required: true
-  }, 
-  goal: {
-    type: String,
-    enum: ['Weight Loss', 'Muscle Gain', 'Maintenance'], // add more later 
-  },
-  activityLevel: {
-    type: String,
-    enum: ['Sedentary', 'Lightly Active', 'Moderately Active', 'Very Active', 'Super Active'], // add more later 
-  }, 
-}); 
-
-
-const userSocialSchema = new Schema({
-  Instagram: {
-    type: String,
-    trim: true
-  },
-  friends: {
-    type: [Schema.Types.ObjectId],
-    ref: 'User'
-  },
-  followers: {
-    type: [Schema.Types.ObjectId],
-    ref: 'User'
-  }, 
-  following: {
-    type: [Schema.Types.ObjectId],
-    ref: 'User'
-  },
-});
-
+module.exports = mongoose.model('UserProfile', userProfileSchema, 'userProfiles');
