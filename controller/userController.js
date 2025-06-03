@@ -39,9 +39,11 @@ const userController = {
    * @route POST /user/updte
   **/
   updateUser: async (req, res) => {
-    const { id } = req.params;
     const updateFields = req.body;
-
+    if (!updateFields.userId) {
+      return res.status(400).json({ message: 'User ID is required' });
+    }
+    id = mongoose.Types.ObjectId(updateFields.userId);
     try {
       const updatedUser = await userProfile.findByIdAndUpdate(id, updateFields, { new: true });
       if (!updatedUser) {
