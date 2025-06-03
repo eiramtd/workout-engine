@@ -50,9 +50,15 @@ const userProfileSchema = new Schema({
     required: true,
     ref: 'User'
   },
-  firstName: {
+  username:{
     type: String,
     required: true,
+    unique: true,
+    trim: true,
+    lowercase: true
+  },
+  firstName: {
+    type: String,
     trim: true
   },
   lastName: {
