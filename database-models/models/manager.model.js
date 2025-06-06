@@ -8,27 +8,14 @@ const managerSchema = new Schema({
     ref: 'User',
     unique: true
   },
-  name: {
-    type: String,
-    required: true
-  }, 
   description: {
     type: String,
-    required: true
+    // required: true
   },
   specialization: {
     type: String,
-    required: true
+    // required: true
   }, 
-  email: {
-    type: String,
-    required: true,
-    unique: true
-  },
-  phone: {
-    type: String,
-    required: true
-  },
   clientId: {
     type:[Schema.Types.ObjectId],
     ref: 'User',

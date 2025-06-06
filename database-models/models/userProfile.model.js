@@ -45,11 +45,11 @@ const userSocialSchema = new Schema({
 });
 
 const userProfileSchema = new Schema({
-  userId: {
-    type: Schema.Types.ObjectId,
-    required: true,
-    ref: 'User'
-  },
+  // userId: {
+  //   type: Schema.Types.ObjectId,
+  //   required: true,
+  //   ref: 'User'
+  // },
   username:{
     type: String,
     required: true,

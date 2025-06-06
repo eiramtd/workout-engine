@@ -9,7 +9,6 @@ const userController = {
   **/
   createNewUser: async (req, res) => {
     const userBody = req.body;
-    const userId = new mongoose.Types.ObjectId();
 
 
     const existingUsername = await userProfile.findOne({ username: userBody.username });
@@ -22,10 +21,10 @@ const userController = {
     }
     try {
       const newUser = new userProfile({
-        userId,
         ...userBody,
       });
       await newUser.save();
+      console.log('User created successfully:', newUser.username);
       res.status(201).json({ message: 'User created successfully', user: newUser });
     } catch (error) {
       console.error('Error creating user:', error);
@@ -38,12 +37,14 @@ const userController = {
    * @description Updates a user in the database
    * @route POST /user/updte
   **/
+ // need to test . 
   updateUser: async (req, res) => {
-    const { id } = req.params;
-    const updateFields = req.body;
-
+    const { username , ...updateFields } = req.body;
+    if (!username) {
+      return res.status(400).json({ message: 'Username is required' });
+    }
     try {
-      const updatedUser = await userProfile.findByIdAndUpdate(id, updateFields, { new: true });
+      const updatedUser = await userProfile.findOneAndUpdate({ username }, {$set : updateFields}, { new: true }); 
       if (!updatedUser) {
         return res.status(404).json({ message: 'User not found' });
       }
@@ -61,17 +62,19 @@ const userController = {
    */
 
   deleteUser: async (req, res) => {
-    const { id } = req.params;
-
+    const { username } = req.body;
+    if (!username) {
+      return res.status(400).json({ message: 'Username is required' });
+    } 
     try {
-      const deletedUser = await userProfile.findByIdAndDelete(id);
+      const deletedUser = await userProfile.findOneAndDelete({username});
       if (!deletedUser) {
         return res.status(404).json({ message: 'User not found' });
       }
-      res.status(200).json({ message: 'User deleted successfully', userId: deletedUser.id, userName: deletedUser.firstName });
+      res.status(200).json({ message: 'User deleted successfully : ',username});
     } catch (error) {
       console.error('Error deleting user:', error);
-      res.status(500).json({ message: 'Internal server error', error: error.message });
+      res.status(500).json({ message: 'Internal server error', error: error.message });``
     }
   },
 
