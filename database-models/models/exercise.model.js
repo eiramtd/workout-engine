@@ -83,3 +83,5 @@ const exerciseSchema = new Schema({
     default: Date.now
   }
 });
+
+module.exports = model('Exercise', exerciseSchema, 'exercises'); 

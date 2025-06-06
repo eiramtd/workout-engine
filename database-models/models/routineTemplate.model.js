@@ -50,3 +50,6 @@ const routineTemplateSchema = new Schema({
     required: true
   }
 }, {timestamps: true}); 
+
+
+module.exports = model('RoutineTemplate', routineTemplateSchema, 'routineTemplates');

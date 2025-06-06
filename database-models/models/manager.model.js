@@ -47,3 +47,5 @@ const managerSchema = new Schema({
     default: Date.now
   }
 });
+
+module.exports = model('Manager', managerSchema, 'managers'); 

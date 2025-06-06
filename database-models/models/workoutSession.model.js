@@ -1,71 +1,7 @@
 const {Schema, model} = require('mongoose');
 
-const workoutSessionSchema = new Schema({
-  _id:{
-    type: Schema.Types.ObjectId,
-    auto: true,
-  },
-  userId: {
-    type: Schema.Types.ObjectId,
-    required: true,
-    ref: 'User'
-  }, 
-  sessionType: {
-    type: String,
-    enum: ['strength', 'cardio', 'flexibility', 'balance','custom'],
-    required: true
-  },
-  duration: {
-    type: Number, 
-    required: true,
-    min: 1
-  }, 
-  exercises: [exerciseEntrySchema],
-  notes: {
-    type: String,
-    trim: true
-  },
-  isTracked: {
-    type: Boolean,
-    default: true
-  },
 
-  source: {
-    type: String,
-    enum: ['auto', 'manual', 'template'],
-    default: 'app'
-  },
-  date: {
-    type: Date,
-    default: Date.now
-  },
-  createdAt: {
-    type: Date,
-    default: Date.now
-  },
-  updatedAt: {
-    type: Date,
-    default: Date.now
-  }
-}); 
 
-const exerciseEntrySchema = new Schema({ 
-  exerciseId:{
-    type: Schema.Types.ObjectId,
-    required: true,
-    ref: 'Exercise'
-  },
-  sets : [setSchema],
-  supersets: [supersetSchema],
-  completed: {
-    type: Boolean,
-    default: false
-  },
-  notes: {
-    type: String,
-    trim: true
-  },
-},{_id: false});
 
 const setSchema = new Schema({
   setNumber: {
@@ -114,4 +50,76 @@ const supersetSchema = new Schema({
     type: String,
     trim: true
   }
-},{_id: false}); 
+},{_id: false});
+
+const exerciseEntrySchema = new Schema({ 
+  exerciseId:{
+    type: Schema.Types.ObjectId,
+    required: true,
+    ref: 'Exercise'
+  },
+  sets : [setSchema],
+  supersets: [supersetSchema],
+  completed: {
+    type: Boolean,
+    default: false
+  },
+  notes: {
+    type: String,
+    trim: true
+  },
+},{_id: false});
+
+const workoutSessionSchema = new Schema({
+  _id:{
+    type: Schema.Types.ObjectId,
+    auto: true,
+  },
+  userId: {
+    type: Schema.Types.ObjectId,
+    required: true,
+    ref: 'User'
+  }, 
+  sessionType: {
+    type: String,
+    enum: ['strength', 'cardio', 'flexibility', 'balance','custom'],
+    required: true
+  },
+  duration: {
+    type: Number, 
+    required: true,
+    min: 1
+  }, 
+  exercises: [exerciseEntrySchema],
+  notes: {
+    type: String,
+    trim: true
+  },
+  isTracked: {
+    type: Boolean,
+    default: true
+  },
+
+  source: {
+    type: String,
+    enum: ['auto', 'manual', 'template'],
+    default: 'app'
+  },
+  date: {
+    type: Date,
+    default: Date.now
+  },
+  createdAt: {
+    type: Date,
+    default: Date.now
+  },
+  updatedAt: {
+    type: Date,
+    default: Date.now
+  }
+}); 
+module.exports = {
+  setSchema,
+  supersetSchema,
+  WorkoutSession: model('WorkoutSession', workoutSessionSchema, 'workoutSessions')
+};
