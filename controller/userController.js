@@ -37,7 +37,7 @@ const userController = {
    * @description Updates a user in the database
    * @route POST /user/updte
   **/
- // need to test . 
+ 
   updateUser: async (req, res) => {
     const { username , ...updateFields } = req.body;
     if (!username) {

@@ -23,7 +23,6 @@ const managerController = {
         try {
             await userProfile.findOneAndUpdate({ username }, { $set: { isManager: true } }, { upsert: true });
 
-            // create manager record
             const managerRecord = new manager({
                 managerId: isUserExist._id,
 
