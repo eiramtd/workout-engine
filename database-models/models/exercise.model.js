@@ -1,17 +1,19 @@
 const {Schema, model} = require('mongoose');
+const AutoIncrement = require('mongoose-sequence')(require('mongoose'));
 
 const exerciseSchema = new Schema({
   _id :{
     type: Schema.Types.ObjectId,
     auto: true
   },
+  exerciseId: {
+    type:Number,
+    unique: true,
+    trim: true
+  }, 
   name: {
     type: String,
     required: true,
-    trim: true
-  },
-  description: {
-    type: String,
     trim: true
   },
   tags: {
@@ -36,21 +38,11 @@ const exerciseSchema = new Schema({
     type: Boolean,
     default: false
   },
-  difficulty: {
-    type: String,
-    enum: ['beginner', 'intermediate', 'advanced'],
-    default: 'beginner'
-  },
-
   isCardio: {
     type: Boolean,
     default: false
   },
-  intensity: {
-    type: String,
-    enum: ['low', 'medium', 'high'],
-    default: 'medium'
-  }, 
+
 
   videoUrl: {
     type: String,
@@ -65,11 +57,8 @@ const exerciseSchema = new Schema({
     type: Boolean,
     default: false
   },
-  supportsSupersets: {
-    type: Boolean,
-    default: false
-  },
-  SubstituteExercises: {
+
+  substituteExercises: {
     type: [Schema.Types.ObjectId],
     ref: 'Exercise',
     default: []
@@ -84,4 +73,5 @@ const exerciseSchema = new Schema({
   }
 });
 
+exerciseSchema.plugin(AutoIncrement, { inc_field: 'exerciseId' });
 module.exports = model('Exercise', exerciseSchema, 'exercises'); 
