@@ -73,7 +73,7 @@ const routineTemplateController = {
      * @description add a exercise to a routine template
      */
     addExerciseToRoutineTemplate: async (req, res) => {
-        const {routineTemplateId,day,week,exercise} = req.body;
+        const { routineTemplateId, day, week, exercise } = req.body;
         if (!routineTemplateId || !day || !week || !exercise) {
             return res.status(400).json({ message: 'Routine template ID, day, week, and exercise are required' });
         }
@@ -100,14 +100,14 @@ const routineTemplateController = {
      */
 
     deleteDayFromRoutineTemplate: async (req, res) => {
-        const { routineTemplateId, day , week } = req.body;
+        const { routineTemplateId, day, week } = req.body;
         if (!routineTemplateId || !day || !week) {
             return res.status(400).json({ message: 'Routine template ID and day are required' });
         }
         try {
             const updatedRoutineTemplate = await routineTemplate.findByIdAndUpdate(
                 routineTemplateId,
-                { $pull: { workoutDays: { day: day , week:week } } },
+                { $pull: { workoutDays: { day: day, week: week } } },
                 { new: true }
             );
             if (!updatedRoutineTemplate) {
@@ -200,7 +200,7 @@ const routineTemplateController = {
             console.error('Error retrieving routine template by ID:', error);
             res.status(500).json({ message: 'Internal server error', error: error.message });
         }
-    }, 
+    },
 
     /**
      * @description add a set to an exercise in a routine template
@@ -410,68 +410,83 @@ const routineTemplateController = {
      * @route POST /routine/cloneWeek
      */
 
+
     cloneWeekInRoutineTemplate: async (req, res) => {
-        const { sourceRoutineTemplateId, targetRoutineTemplateId, week } = req.body;
-        if (!sourceRoutineTemplateId || !targetRoutineTemplateId || !week) {
-            return res.status(400).json({ message: 'Source routine template ID, target routine template ID, and week are required' });
+        const { routineTemplateId, sourceWeek, targetWeek } = req.body;
+        if (!routineTemplateId || !sourceWeek || !targetWeek) {
+            return res.status(400).json({ message: 'Routine template ID, source week, and target week are required' });
         }
         try {
-            const sourceRoutineTemplate = await routineTemplate.findById(sourceRoutineTemplateId);
-            if (!sourceRoutineTemplate) {
-                return res.status(404).json({ message: 'Source routine template not found' });
+            const template = await routineTemplate.findById(routineTemplateId);
+            if (!template) {
+                return res.status(404).json({ message: 'Routine template not found' });
             }
-            const weekData = sourceRoutineTemplate.workoutDays.find(w => w.week === week);
-            if (!weekData) {
-                return res.status(404).json({ message: 'Week not found in source routine template' });
+            // Find all days for the source week
+            const sourceDays = template.workoutDays.filter(wd => wd.week === sourceWeek);
+            if (!sourceDays.length) {
+                return res.status(404).json({ message: 'Source week not found in routine template' });
             }
-            const updatedTargetRoutineTemplate = await routineTemplate.findByIdAndUpdate(
-                targetRoutineTemplateId,
-                { $push: { workoutDays: weekData } },
+            // Clone days and set their week to targetWeek
+            const clonedDays = sourceDays.map(day => {
+                const newDay = day.toObject ? day.toObject() : { ...day };
+                delete newDay._id; // Remove _id so MongoDB assigns new ones
+                newDay.week = targetWeek;
+                return newDay;
+            });
+            // Add cloned days to the template
+            const updatedTemplate = await routineTemplate.findByIdAndUpdate(
+                routineTemplateId,
+                { $push: { workoutDays: { $each: clonedDays } } },
                 { new: true }
             );
-            if (!updatedTargetRoutineTemplate) {
-                return res.status(404).json({ message: 'Target routine template not found' });
+            if (!updatedTemplate) {
+                return res.status(404).json({ message: 'Routine template not found after update' });
             }
-            res.status(200).json({ message: 'Week cloned successfully', routineTemplate: updatedTargetRoutineTemplate });
+            res.status(200).json({ message: 'Week cloned successfully', routineTemplate: updatedTemplate });
         } catch (error) {
             console.error('Error cloning week in routine template:', error);
             res.status(500).json({ message: 'Internal server error', error: error.message });
         }
     },
-
     /**
      * @description clone a day 
      * @route POST /routine/cloneDay
      */
-
     cloneDayInRoutineTemplate: async (req, res) => {
-        const { sourceRoutineTemplateId, targetRoutineTemplateId, day, week } = req.body;
-        if (!sourceRoutineTemplateId || !targetRoutineTemplateId || !day || !week) {
-            return res.status(400).json({ message: 'Source routine template ID, target routine template ID, day, and week are required' });
+        const { routineTemplateId, sourceDay, sourceWeek, targetDay, targetWeek } = req.body;
+        if (!routineTemplateId || sourceDay == null || sourceWeek == null) {
+            return res.status(400).json({ message: 'Routine template ID, source day, and source week are required' });
         }
         try {
-            const sourceRoutineTemplate = await routineTemplate.findById(sourceRoutineTemplateId);
-            if (!sourceRoutineTemplate) {
-                return res.status(404).json({ message: 'Source routine template not found' });
+            const template = await routineTemplate.findById(routineTemplateId);
+            if (!template) {
+                return res.status(404).json({ message: 'Routine template not found' });
             }
-            const dayData = sourceRoutineTemplate.workoutDays.find(w => w.day === day && w.week === week);
+            const dayData = template.workoutDays.find(w => w.day === sourceDay && w.week === sourceWeek);
             if (!dayData) {
-                return res.status(404).json({ message: 'Day not found in source routine template' });
+                return res.status(404).json({ message: 'Day not found in routine template' });
             }
-            const updatedTargetRoutineTemplate = await routineTemplate.findByIdAndUpdate(
-                targetRoutineTemplateId,
-                { $push: { workoutDays: dayData } },
+            // Clone and set new day/week if provided
+            const newDay = dayData.toObject ? dayData.toObject() : { ...dayData };
+            delete newDay._id;
+            newDay.day = targetDay != null ? targetDay : dayData.day;
+            newDay.week = targetWeek != null ? targetWeek : dayData.week;
+
+            const updatedTemplate = await routineTemplate.findByIdAndUpdate(
+                routineTemplateId,
+                { $push: { workoutDays: newDay } },
                 { new: true }
             );
-            if (!updatedTargetRoutineTemplate) {
-                return res.status(404).json({ message: 'Target routine template not found' });
+            if (!updatedTemplate) {
+                return res.status(404).json({ message: 'Routine template not found after update' });
             }
-            res.status(200).json({ message: 'Day cloned successfully', routineTemplate: updatedTargetRoutineTemplate });
+            res.status(200).json({ message: 'Day cloned successfully', routineTemplate: updatedTemplate });
         } catch (error) {
             console.error('Error cloning day in routine template:', error);
             res.status(500).json({ message: 'Internal server error', error: error.message });
         }
     },
+
 
     /**
      * @description Retrieves all routine templates with pagination
@@ -498,26 +513,26 @@ const routineTemplateController = {
      * @route POST /routine/reorderDays
      */
 
-    reorderWorkoutDaysInRoutineTemplate: async (req, res) => {
-        const { routineTemplateId, newOrder } = req.body;
-        if (!routineTemplateId || !Array.isArray(newOrder)) {
-            return res.status(400).json({ message: 'Routine template ID and new order are required' });
-        }
-        try {
-            const updatedRoutineTemplate = await routineTemplate.findByIdAndUpdate(
-                routineTemplateId,
-                { workoutDays: newOrder },
-                { new: true }
-            );
-            if (!updatedRoutineTemplate) {
-                return res.status(404).json({ message: 'Routine template not found' });
-            }
-            res.status(200).json({ message: 'Workout days reordered successfully', routineTemplate: updatedRoutineTemplate });
-        } catch (error) {
-            console.error('Error reordering workout days in routine template:', error);
-            res.status(500).json({ message: 'Internal server error', error: error.message });
-        }
-    },
+    // reorderWorkoutDaysInRoutineTemplate: async (req, res) => {
+    //     const { routineTemplateId, newOrder } = req.body;
+    //     if (!routineTemplateId || !Array.isArray(newOrder)) {
+    //         return res.status(400).json({ message: 'Routine template ID and new order are required' });
+    //     }
+    //     try {
+    //         const updatedRoutineTemplate = await routineTemplate.findByIdAndUpdate(
+    //             routineTemplateId,
+    //             { workoutDays: newOrder },
+    //             { new: true }
+    //         );
+    //         if (!updatedRoutineTemplate) {
+    //             return res.status(404).json({ message: 'Routine template not found' });
+    //         }
+    //         res.status(200).json({ message: 'Workout days reordered successfully', routineTemplate: updatedRoutineTemplate });
+    //     } catch (error) {
+    //         console.error('Error reordering workout days in routine template:', error);
+    //         res.status(500).json({ message: 'Internal server error', error: error.message });
+    //     }
+    // },
 
     /**
      * @description PATCH a day in a routine template
@@ -526,14 +541,23 @@ const routineTemplateController = {
 
     patchDayInRoutineTemplate: async (req, res) => {
         const { routineTemplateId, day, week, updatedDay } = req.body;
-        if (!routineTemplateId || !day || !week || !updatedDay) {
-            return res.status(400).json({ message: 'Routine template ID, day, week, and updated day are required' });
+        if (!routineTemplateId || day == null || week == null || !updatedDay) {
+            return res.status(400).json({ message: 'Routine template ID, day, week, and updatedDay are required' });
         }
         try {
+            const setFields = {};
+            for (const [key, value] of Object.entries(updatedDay)) {
+                setFields[`workoutDays.$[targetDay].${key}`] = value;
+            }
             const updatedRoutineTemplate = await routineTemplate.findOneAndUpdate(
-                { _id: routineTemplateId, 'workoutDays.day': day, 'workoutDays.week': week },
-                { $set: { 'workoutDays.$': updatedDay } },
-                { new: true }
+                { _id: routineTemplateId },
+                { $set: setFields },
+                {
+                    new: true,
+                    arrayFilters: [
+                        { 'targetDay.day': day, 'targetDay.week': week }
+                    ]
+                }
             );
             if (!updatedRoutineTemplate) {
                 return res.status(404).json({ message: 'Routine template or specified day/week not found' });
@@ -548,17 +572,21 @@ const routineTemplateController = {
     /**
      * @description patch an exercise in a routine template
      * @route PATCH /routine/patchExercise
-     */ 
+     */
 
     patchExerciseInRoutineTemplate: async (req, res) => {
-        const { routineTemplateId, day, week, exerciseId, updatedExercise } = req.body;
-        if (!routineTemplateId || !day || !week || !exerciseId || !updatedExercise) {
-            return res.status(400).json({ message: 'Routine template ID, day, week, exercise ID, and updated exercise are required' });
+        const { routineTemplateId, day, week, exerciseId, patch } = req.body;
+        if (!routineTemplateId || day == null || week == null || !exerciseId || !patch) {
+            return res.status(400).json({ message: 'Routine template ID, day, week, exercise ID, and patch object are required' });
         }
         try {
+            const setFields = {};
+            for (const [key, value] of Object.entries(patch)) {
+                setFields[`workoutDays.$.exercises.$[exercise].${key}`] = value;
+            }
             const updatedRoutineTemplate = await routineTemplate.findOneAndUpdate(
                 { _id: routineTemplateId, 'workoutDays.day': day, 'workoutDays.week': week },
-                { $set: { 'workoutDays.$.exercises.$[exercise]': updatedExercise } },
+                { $set: setFields },
                 { new: true, arrayFilters: [{ 'exercise._id': exerciseId }] }
             );
             if (!updatedRoutineTemplate) {
@@ -577,14 +605,18 @@ const routineTemplateController = {
      */
 
     patchSetInExerciseInRoutineTemplate: async (req, res) => {
-        const { routineTemplateId, day, week, exerciseId, setId, updatedSet } = req.body;
-        if (!routineTemplateId || !day || !week || !exerciseId || !setId || !updatedSet) {
-            return res.status(400).json({ message: 'Routine template ID, day, week, exercise ID, set ID, and updated set are required' });
+        const { routineTemplateId, day, week, exerciseId, setId, patch } = req.body;
+        if (!routineTemplateId || day == null || week == null || !exerciseId || !setId || !patch) {
+            return res.status(400).json({ message: 'Routine template ID, day, week, exercise ID, set ID, and patch object are required' });
         }
         try {
+            const setFields = {};
+            for (const [key, value] of Object.entries(patch)) {
+                setFields[`workoutDays.$.exercises.$[exercise].sets.$[set].${key}`] = value;
+            }
             const updatedRoutineTemplate = await routineTemplate.findOneAndUpdate(
                 { _id: routineTemplateId, 'workoutDays.day': day, 'workoutDays.week': week },
-                { $set: { 'workoutDays.$.exercises.$[exercise].sets.$[set]': updatedSet } },
+                { $set: setFields },
                 { new: true, arrayFilters: [{ 'exercise._id': exerciseId }, { 'set._id': setId }] }
             );
             if (!updatedRoutineTemplate) {
@@ -608,10 +640,20 @@ const routineTemplateController = {
             return res.status(400).json({ message: 'Routine template ID, day, week, exercise ID, superset ID, and updated superset are required' });
         }
         try {
+            // Build $set object for only the fields to update
+            const setFields = {};
+            for (const [key, value] of Object.entries(updatedSuperset)) {
+                setFields[`workoutDays.$.exercises.$[exercise].supersets.$[superset].${key}`] = value;
+            }
             const updatedRoutineTemplate = await routineTemplate.findOneAndUpdate(
                 { _id: routineTemplateId, 'workoutDays.day': day, 'workoutDays.week': week },
-                { $set: { 'workoutDays.$.exercises.$[exercise].supersets.$[superset]': updatedSuperset } },
-                { new: true, arrayFilters: [{ 'exercise._id': exerciseId }, { 'superset._id': supersetId }] }
+                { $set: setFields },
+                {
+                    new: true, arrayFilters: [
+                        { 'exercise._id': exerciseId },
+                        { 'superset._id': supersetId }
+                    ]
+                }
             );
             if (!updatedRoutineTemplate) {
                 return res.status(404).json({ message: 'Routine template or specified day/week not found' });
