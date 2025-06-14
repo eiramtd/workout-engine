@@ -9,6 +9,7 @@ exerciseRouter.post('/create', exerciseController.createNewExercise);
 exerciseRouter.post('/update', exerciseController.updateExercise);
 exerciseRouter.post('/delete', exerciseController.deleteExercise);
 exerciseRouter.get('/getAll', exerciseController.getAllExercises);
+exerciseRouter.get('/getByTags', exerciseController.getExercisesByTags);
 exerciseRouter.post("/import",upload.single('file'), exerciseController.importExercisesFromCSV);
 
 module.exports = exerciseRouter; 
