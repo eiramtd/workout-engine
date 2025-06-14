@@ -150,7 +150,29 @@ const exerciseController = {
         }
 
 
-    }
+    },
+
+    /**
+     * @description retreives exercises by tags
+     * @route GET /exercise/getByTags
+     */
+
+    getExercisesByTags: async (req, res) => {
+        const { tags } = req.body;
+        if (!tags) {
+            return res.status(400).json({ message: 'Tags are required' });
+        }
+        try {
+            const exercises = await Exercise.find({ tags: { $in: tags.split(',') } });
+            if (exercises.length === 0) {
+                return res.status(404).json({ message: 'No exercises found for these tags' });
+            }
+            res.status(200).json({ message: 'Exercises retrieved successfully', exercises });
+        } catch (error) {
+            console.error('Error retrieving exercises by tags:', error);
+            res.status(500).json({ message: 'Internal server error', error: error.message });
+        }
+    },
 
 };
 

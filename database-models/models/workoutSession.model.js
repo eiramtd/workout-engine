@@ -75,6 +75,10 @@ const workoutSessionSchema = new Schema({
     type: Schema.Types.ObjectId,
     auto: true,
   },
+  name: {
+    type: String,
+    trim: true
+  },
   userId: {
     type: Schema.Types.ObjectId,
     required: true,
@@ -103,7 +107,7 @@ const workoutSessionSchema = new Schema({
   source: {
     type: String,
     enum: ['auto', 'manual', 'template'],
-    default: 'app'
+    default: 'manual'
   },
   date: {
     type: Date,
@@ -121,5 +125,5 @@ const workoutSessionSchema = new Schema({
 module.exports = {
   setSchema,
   supersetSchema,
-  WorkoutSession: model('WorkoutSession', workoutSessionSchema, 'workoutSessions')
+  workoutSession: model('workoutSession', workoutSessionSchema, 'workoutSession')
 };

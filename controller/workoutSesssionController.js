@@ -1,5 +1,5 @@
-const { workoutSession, Exercise } = require('../database-models/index.js');
-
+const { workoutSession } = require('../database-models/index.js').workoutSession;
+const {exercise} = require('../database-models/index.js');
 
 const workoutSessionController = {
 
@@ -96,7 +96,7 @@ const workoutSessionController = {
      */
 
     getRecentWorkoutSessionsByUserId: async (req, res) => {
-        const { userId } = req.query;
+        const { userId } = req.body;
         if (!userId) {
             return res.status(400).json({ message: 'User ID is required' });
         }
@@ -146,7 +146,7 @@ const workoutSessionController = {
      */
 
     getWorkoutSessionsByDateRange: async (req, res) => {
-        const { userId, startDate, endDate } = req.query;
+        const { userId, startDate, endDate } = req.body;
         if (!userId || !startDate || !endDate) {
             return res.status(400).json({ message: 'User ID, start date, and end date are required' });
         }
@@ -172,18 +172,23 @@ const workoutSessionController = {
      * @description get session by tags
      * * @route GET /workout/getByTags 
      */
-
+    // NOT TESTED
     getWorkoutSessionsByTags: async (req, res) => {
-        const { userId, tags } = req.query;
+        const { userId, tags } = req.body;
         if (!userId || !tags) {
             return res.status(400).json({ message: 'User ID and tags are required' });
         }
         try {
-            const exercisesWithTag = await Exercise.find({ tags: { $in: tags.split(',') } }).select('_id');
+            const exercisesWithTag = await exercise.find({ tags: { $in: tags.split(',') } }).select('_id');
+            console.log('Exercises with tags:', exercisesWithTag);
+            const sessions = await workoutSession.find({userId});
+            console.log(sessions[0].exercises);
+    
             const workoutSessions = await workoutSession.find({
                 userId,
-                exercises: { $in: exercisesWithTag.map(exercise => exercise._id) },
+                "exercises.exerciseId": { $in: exercisesWithTag.map(exercise => exercise._id) },
             });
+            console.log('Workout sessions found:', workoutSessions);
             if (workoutSessions.length === 0) {
                 return res.status(404).json({ message: 'No workout sessions found for these tags' });
             }
