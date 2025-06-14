@@ -33,7 +33,7 @@ const setSchema = new Schema({
     min: 1,
     max: 10
   }, 
-},{_id: false});
+},{_id: true});
 
 const supersetSchema = new Schema({
   supersetId: {
@@ -50,7 +50,7 @@ const supersetSchema = new Schema({
     type: String,
     trim: true
   }
-},{_id: false});
+},{_id: true});
 
 const exerciseEntrySchema = new Schema({ 
   exerciseId:{

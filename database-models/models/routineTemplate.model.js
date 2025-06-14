@@ -14,7 +14,7 @@ const exerciseTemplateSchema = new Schema({
     type: String,
     default: ''
   }
-}, {_id: false, timestamps: true});
+}, {_id: true, timestamps: true});
 
 const workoutDaySchema = new Schema({
   day: {
